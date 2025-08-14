@@ -185,3 +185,5 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
     </Card>
   )
 }
+
+export default RegisterForm

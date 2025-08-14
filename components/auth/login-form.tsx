@@ -115,3 +115,5 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
     </Card>
   )
 }
+
+export default LoginForm

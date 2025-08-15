@@ -1,5 +1,5 @@
 {
-  "name": "my-v0-project",
+  "name": "telebot-server",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -39,7 +39,7 @@
     "@radix-ui/react-tooltip": "1.1.6",
     "@supabase/auth-helpers-nextjs": "latest",
     "@supabase/ssr": "latest",
-    "@supabase/supabase-js": "latest",
+    "@supabase/supabase-js": "^2.46.2",
     "@vercel/blob": "latest",
     "autoprefixer": "^10.4.20",
     "child_process": "latest",
@@ -73,7 +73,6 @@
     "@types/react-dom": "^19",
     "postcss": "^8.5",
     "tailwindcss": "^4.1.9",
-    "tw-animate-css": "1.3.3",
     "typescript": "^5"
   }
 }

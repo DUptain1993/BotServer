@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "tw-animate-css";
+/* Removed potentially problematic tw-animate-css import */
 
 @custom-variant dark (&:is(.dark *));
 
@@ -116,9 +116,6 @@
   --color-sidebar-ring: var(--sidebar-ring);
   --font-sans: var(--font-open-sans);
   --font-heading: var(--font-work-sans);
-  /* Added animation utilities for glitch effects */
-  --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  --animate-bounce: bounce 1s infinite;
 }
 
 @layer base {

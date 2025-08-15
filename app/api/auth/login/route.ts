@@ -1,41 +1,9 @@
+import { createServerClient } from "@/lib/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
-import { cookies } from "next/headers"
 
 interface LoginRequest {
   email: string
   password: string
-}
-
-interface User {
-  id: string
-  email: string
-  name: string
-  plan: "free" | "pro" | "enterprise"
-  createdAt: string
-}
-
-// Mock user database
-const mockUsers: Record<string, { password: string; user: User }> = {
-  "demo@telebot.com": {
-    password: "password123",
-    user: {
-      id: "1",
-      email: "demo@telebot.com",
-      name: "Demo User",
-      plan: "free",
-      createdAt: new Date().toISOString(),
-    },
-  },
-  "admin@telebot.com": {
-    password: "admin123",
-    user: {
-      id: "2",
-      email: "admin@telebot.com",
-      name: "Admin User",
-      plan: "pro",
-      createdAt: new Date().toISOString(),
-    },
-  },
 }
 
 export async function POST(request: NextRequest) {
@@ -47,25 +15,51 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 })
     }
 
-    // Check credentials
-    const userRecord = mockUsers[email.toLowerCase()]
-    if (!userRecord || userRecord.password !== password) {
+    const supabase = createServerClient()
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (error) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 
-    // Create session token (in production, use proper JWT)
-    const sessionToken = Buffer.from(JSON.stringify({ userId: userRecord.user.id, email })).toString("base64")
+    // Get user profile
+    const { data: profile, error: profileError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", data.user.id)
+      .single()
 
-    // Set session cookie
-    const cookieStore = await cookies()
-    cookieStore.set("telebot-session", sessionToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+    if (profileError) {
+      // Create user profile if it doesn't exist
+      const { data: newProfile, error: createError } = await supabase
+        .from("users")
+        .insert({
+          id: data.user.id,
+          email: data.user.email,
+          full_name: data.user.user_metadata?.full_name || "",
+        })
+        .select()
+        .single()
+
+      if (createError) {
+        console.error("Profile creation error:", createError)
+        return NextResponse.json({ error: "Failed to create user profile" }, { status: 500 })
+      }
+    }
+
+    return NextResponse.json({
+      user: {
+        id: data.user.id,
+        email: data.user.email,
+        name: profile?.full_name || data.user.user_metadata?.full_name || "",
+        plan: "free",
+        createdAt: data.user.created_at,
+      },
     })
-
-    return NextResponse.json({ user: userRecord.user })
   } catch (error) {
     console.error("Login error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

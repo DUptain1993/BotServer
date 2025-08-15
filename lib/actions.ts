@@ -55,7 +55,7 @@ export async function signUp(prevState: any, formData: FormData) {
       process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
       (process.env.NEXT_PUBLIC_SITE_URL
         ? `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
-        : "https://v0-tele-bot-server.vercel.app/auth/callback")
+        : "http://localhost:3000/auth/callback")
 
     const { error } = await supabase.auth.signUp({
       email: email.toString(),

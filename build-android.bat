@@ -1,6 +1,6 @@
 @echo off
-REM Telegram Bot Platform - Android APK Build Script for Windows
-echo 🚀 Building Telegram Bot Platform APK...
+REM Hacker Bot Matrix - Android APK Build Script for Windows
+echo 🚀 Building Hacker Bot Matrix APK...
 
 REM Check if Node.js is installed
 node --version >nul 2>&1

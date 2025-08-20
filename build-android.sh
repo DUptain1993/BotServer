@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Telegram Bot Platform - Android APK Build Script
-echo "🚀 Building Telegram Bot Platform APK..."
+# Hacker Bot Matrix - Android APK Build Script
+echo "🚀 Building Hacker Bot Matrix APK..."
 
 # Check if Node.js is installed
 if ! command -v node &> /dev/null; then

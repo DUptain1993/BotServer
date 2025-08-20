@@ -17,8 +17,8 @@ const openSans = Open_Sans({
 })
 
 export const metadata: Metadata = {
-  title: "TeleBot Server - Free Telegram Bot Hosting",
-  description: "Host your Python Telegram bots for free, straight from your phone!",
+  title: "Hacker Bot Matrix - Dark Bot Deployment",
+  description: "Enter the digital realm. Deploy your Python Telegram bots with hacker precision!",
   generator: "v0.app",
 }
 

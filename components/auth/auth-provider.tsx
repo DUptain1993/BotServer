@@ -22,8 +22,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 // Default user data for the app
 const defaultUser: User = {
   id: "local-user",
-  email: "user@telegrambot.platform",
-  name: "Bot Manager",
+  email: "hacker@matrix.local",
+  name: "System Administrator",
   avatar: "",
   plan: "free",
   createdAt: new Date()

@@ -6,7 +6,7 @@ export default function HomePage() {
   return (
     <>
       <AppHeader />
-      <main className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50">
+      <main className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
         <div className="container mx-auto px-4 py-8 max-w-4xl">
           <HeroSection />
           <BotManagementApp />

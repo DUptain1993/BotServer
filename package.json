@@ -1,7 +1,7 @@
 {
-  "name": "telegram-bot-deployment-platform",
+  "name": "hacker-bot-matrix",
   "version": "1.0.0",
-  "description": "A comprehensive Telegram bot deployment platform with Android support and real-time monitoring",
+  "description": "A dark hacker-themed Telegram bot deployment platform with Android support and real-time monitoring",
   "private": true,
   "scripts": {
     "dev": "next dev",

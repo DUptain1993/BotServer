@@ -6,8 +6,8 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  Activity, 
+import {
+  Activity,
   Cpu, 
   HardDrive, 
   Wifi, 
@@ -213,7 +213,7 @@ export function BotMonitoringSystem() {
               <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">System Memory</CardTitle>
-            <Memory className="h-4 w-4 text-muted-foreground" />
+            <HardDrive className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{systemResources?.usedMemory || "0"}</div>
@@ -344,8 +344,8 @@ export function BotMonitoringSystem() {
                     
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2 text-sm">
-                        <Memory className="w-4 h-4" />
-                        <span>Memory</span>
+                                        <HardDrive className="w-4 h-4" />
+                <span>Memory</span>
                       </div>
                       <div className="text-2xl font-bold">{formatMemory(bot.metrics.memoryUsageMB)}</div>
                     </div>
@@ -466,10 +466,10 @@ export function BotMonitoringSystem() {
                     <Line type="monotone" dataKey="errors" stroke="#ef4444" strokeWidth={2} />
                   </LineChart>
                 </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
         </Tabs>
     </div>
   )

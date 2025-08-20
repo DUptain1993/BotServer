@@ -11,9 +11,18 @@
     "android:build": "next build && npx @next/swc-android-arm64",
     "android:start": "next start --port 3000 --hostname 0.0.0.0",
     "docker:build": "docker build -t telegram-bot-platform .",
-    "docker:run": "docker run -p 3000:3000 telegram-bot-platform"
+    "docker:run": "docker run -p 3000:3000 telegram-bot-platform",
+    "capacitor:add": "npx cap add android",
+    "capacitor:sync": "npx cap sync android",
+    "capacitor:open": "npx cap open android",
+    "capacitor:build": "npm run build && npx cap sync android",
+    "android:apk": "npm run capacitor:build && cd android && ./gradlew assembleRelease",
+    "android:debug": "npm run capacitor:build && cd android && ./gradlew assembleDebug"
   },
   "dependencies": {
+    "@capacitor/android": "^5.5.0",
+    "@capacitor/core": "^5.5.0",
+    "@capacitor/ios": "^5.5.0",
     "@next/swc-android-arm64": "^14.0.0",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-alert-dialog": "^1.0.5",
@@ -49,6 +58,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@capacitor/cli": "^5.5.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

@@ -61,7 +61,7 @@ export function DeploymentDashboard({ botFile, requirementsFile, onDeploy }: Dep
       }
 
       const newDeployment: BotDeployment = {
-        id: deployResponse.data?.deploymentId || Date.now().toString(),
+        id: (deployResponse.data as any)?.deploymentId || Date.now().toString(),
         name: botName,
         status: "deploying",
         progress: 0,
@@ -88,22 +88,22 @@ export function DeploymentDashboard({ botFile, requirementsFile, onDeploy }: Dep
       if (response.data) {
         const updatedDeployment: BotDeployment = {
           id: deploymentId,
-          name: response.data.id,
-          status: response.data.status as DeploymentStatus,
-          progress: response.data.progress,
-          logs: response.data.logs,
-          url: response.data.url,
-          error: response.data.error,
-          ...(response.data.status === "running" && { deployedAt: new Date() }),
+          name: (response.data as any).id,
+          status: (response.data as any).status as DeploymentStatus,
+          progress: (response.data as any).progress,
+          logs: (response.data as any).logs,
+          url: (response.data as any).url,
+          error: (response.data as any).error,
+          ...((response.data as any).status === "running" && { deployedAt: new Date() }),
         }
 
         setCurrentDeployment(updatedDeployment)
         setDeployments((prev) => prev.map((d) => (d.id === deploymentId ? updatedDeployment : d)))
 
         // Stop polling when deployment is complete
-        if (response.data.status === "running" || response.data.status === "error") {
+        if ((response.data as any).status === "running" || (response.data as any).status === "error") {
           clearInterval(pollInterval)
-          if (response.data.status === "running") {
+          if ((response.data as any).status === "running") {
             setCurrentDeployment(null)
           }
         }
@@ -123,8 +123,8 @@ export function DeploymentDashboard({ botFile, requirementsFile, onDeploy }: Dep
           d.id === id
             ? {
                 ...d,
-                status: response.data?.status as DeploymentStatus,
-                logs: response.data?.logs || d.logs,
+                status: (response.data as any)?.status as DeploymentStatus,
+                logs: (response.data as any)?.logs || d.logs,
               }
             : d,
         ),

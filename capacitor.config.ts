@@ -3,7 +3,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.hackerbot.matrix',
   appName: 'Hacker Bot Matrix',
-  webDir: 'out',
+  webDir: '.next',
   server: {
     androidScheme: 'https',
     cleartext: true,

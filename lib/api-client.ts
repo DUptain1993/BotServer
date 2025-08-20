@@ -4,97 +4,138 @@ interface ApiResponse<T> {
 }
 
 class ApiClient {
-  private baseUrl = "/api"
+  // Mock implementation for Android app - no server dependencies
+  
+  // Auth methods - Mock for Android
+  async login(email: string, password: string): Promise<ApiResponse<any>> {
+    await new Promise(resolve => setTimeout(resolve, 500))
+    return { data: { user: { id: "local-user", email, name: "System Administrator" } } }
+  }
 
-  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
-    try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        headers: {
-          "Content-Type": "application/json",
-          ...options.headers,
-        },
-        ...options,
-      })
+  async register(email: string, password: string, name: string): Promise<ApiResponse<any>> {
+    await new Promise(resolve => setTimeout(resolve, 500))
+    return { data: { user: { id: "local-user", email, name } } }
+  }
 
-      const data = await response.json()
+  async logout(): Promise<ApiResponse<any>> {
+    await new Promise(resolve => setTimeout(resolve, 200))
+    return { data: { success: true } }
+  }
 
-      if (!response.ok) {
-        return { error: data.error || "Request failed" }
-      }
-
-      return { data }
-    } catch (error) {
-      console.error("API request failed:", error)
-      return { error: "Network error" }
+  // Bot methods - Mock for Android
+  async deployBot(botName: string, botFile: string, requirementsFile: string): Promise<ApiResponse<any>> {
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    return { 
+      data: { 
+        deploymentId: `deploy_${Date.now()}`,
+        status: "deploying"
+      } 
     }
   }
 
-  // Auth methods
-  async login(email: string, password: string) {
-    return this.request("/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
-    })
-  }
-
-  async register(email: string, password: string, name: string) {
-    return this.request("/auth/register", {
-      method: "POST",
-      body: JSON.stringify({ email, password, name }),
-    })
-  }
-
-  async logout() {
-    return this.request("/auth/logout", {
-      method: "POST",
-    })
-  }
-
-  // Bot methods
-  async deployBot(botName: string, botFile: string, requirementsFile: string) {
-    return this.request("/bots/deploy", {
-      method: "POST",
-      body: JSON.stringify({ botName, botFile, requirementsFile }),
-    })
-  }
-
-  async getBotStatus(id: string) {
-    return this.request(`/bots/${id}/status`)
-  }
-
-  async controlBot(id: string, action: "start" | "stop" | "restart") {
-    return this.request(`/bots/${id}/status`, {
-      method: "POST",
-      body: JSON.stringify({ action }),
-    })
-  }
-
-  async getBotMetrics() {
-    return this.request("/bots/metrics")
-  }
-
-  // File upload
-  async uploadFiles(botFile: File, requirementsFile: File) {
-    const formData = new FormData()
-    formData.append("botFile", botFile)
-    formData.append("requirementsFile", requirementsFile)
-
-    try {
-      const response = await fetch(`${this.baseUrl}/upload`, {
-        method: "POST",
-        body: formData,
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        return { error: data.error || "Upload failed" }
+  async getBotStatus(id: string): Promise<ApiResponse<any>> {
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    const statuses = ["deploying", "running", "error", "stopped"]
+    const randomStatus = statuses[Math.floor(Math.random() * statuses.length)]
+    
+    return {
+      data: {
+        id,
+        status: randomStatus,
+        progress: randomStatus === "running" ? 100 : Math.floor(Math.random() * 90),
+        logs: [
+          `[${new Date().toISOString()}] Bot ${id} status: ${randomStatus}`,
+          `[${new Date().toISOString()}] Deployment progress: ${randomStatus === "running" ? 100 : Math.floor(Math.random() * 90)}%`
+        ],
+        url: randomStatus === "running" ? `https://bot-${id}.matrix.local` : undefined,
+        error: randomStatus === "error" ? "Simulated error for demo" : undefined
       }
+    }
+  }
 
-      return { data }
-    } catch (error) {
-      console.error("Upload failed:", error)
-      return { error: "Network error" }
+  async controlBot(id: string, action: "start" | "stop" | "restart"): Promise<ApiResponse<any>> {
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    const status = action === "stop" ? "stopped" : "running"
+    
+    return {
+      data: {
+        status,
+        logs: [`[${new Date().toISOString()}] Bot ${id} ${action}ed successfully`]
+      }
+    }
+  }
+
+  async getBotMetrics(): Promise<ApiResponse<any>> {
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    return {
+      data: {
+        platform: {
+          totalBots: 3,
+          activeBots: 2,
+          totalMemory: "8GB",
+          usedMemory: "2.5GB",
+          totalCpu: "100%",
+          usedCpu: "45%"
+        },
+        bots: [
+          {
+            id: "bot_1",
+            name: "Matrix Bot Alpha",
+            status: "running",
+            metrics: {
+              messagesProcessed: 1250,
+              uptimeSeconds: 86400,
+              memoryUsageMB: 45.2,
+              cpuUsagePercent: 12.5,
+              errorCount: 2,
+              lastActivity: new Date()
+            }
+          },
+          {
+            id: "bot_2", 
+            name: "Hacker Bot Beta",
+            status: "running",
+            metrics: {
+              messagesProcessed: 890,
+              uptimeSeconds: 43200,
+              memoryUsageMB: 38.7,
+              cpuUsagePercent: 8.9,
+              errorCount: 0,
+              lastActivity: new Date()
+            }
+          },
+          {
+            id: "bot_3",
+            name: "Security Bot Gamma", 
+            status: "stopped",
+            metrics: {
+              messagesProcessed: 567,
+              uptimeSeconds: 0,
+              memoryUsageMB: 0,
+              cpuUsagePercent: 0,
+              errorCount: 5,
+              lastActivity: new Date(Date.now() - 3600000)
+            }
+          }
+        ]
+      }
+    }
+  }
+
+  // File upload - Mock for Android
+  async uploadFiles(botFile: File, requirementsFile: File): Promise<ApiResponse<any>> {
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    return {
+      data: {
+        files: {
+          botFile: { content: await botFile.text() },
+          requirementsFile: { content: await requirementsFile.text() }
+        }
+      }
     }
   }
 }

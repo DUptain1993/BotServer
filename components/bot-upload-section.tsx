@@ -185,11 +185,11 @@ export function BotUploadSection({
                 placeholder="My Awesome Bot"
                 className="mt-1"
               />
-            </div>
+          </div>
 
             <div>
               <Label htmlFor="botToken">Bot Token *</Label>
-              <Input
+                <Input
                 id="botToken"
                 type="password"
                 value={botToken}

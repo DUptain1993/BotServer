@@ -6,8 +6,8 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  Activity, 
+import {
+  Activity,
   Cpu, 
   Memory, 
   HardDrive, 
@@ -38,8 +38,8 @@ interface BotMetrics {
     uptimeSeconds: number
     memoryUsageMB: number
     cpuUsagePercent: number
-    errorCount: number
-    lastActivity: Date
+  errorCount: number
+  lastActivity: Date
   }
   createdAt: string
   updatedAt: string
@@ -161,10 +161,10 @@ export function BotMonitoringSystem() {
   }))
 
   if (isLoading) {
-    return (
+  return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
+        </div>
     )
   }
 
@@ -175,9 +175,9 @@ export function BotMonitoringSystem() {
           <div className="flex items-center space-x-2 text-red-600">
             <AlertTriangle className="w-5 h-5" />
             <span>Error: {error}</span>
-          </div>
-        </CardContent>
-      </Card>
+              </div>
+            </CardContent>
+          </Card>
     )
   }
 
@@ -185,7 +185,7 @@ export function BotMonitoringSystem() {
     <div className="space-y-6">
       {/* Platform Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
+              <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Bots</CardTitle>
             <Server className="h-4 w-4 text-muted-foreground" />
@@ -195,10 +195,10 @@ export function BotMonitoringSystem() {
             <p className="text-xs text-muted-foreground">
               {platformMetrics?.runningBots || 0} running, {platformMetrics?.stoppedBots || 0} stopped
             </p>
-          </CardContent>
-        </Card>
+                </CardContent>
+              </Card>
 
-        <Card>
+              <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Messages</CardTitle>
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
@@ -208,10 +208,10 @@ export function BotMonitoringSystem() {
             <p className="text-xs text-muted-foreground">
               {platformMetrics?.totalErrors || 0} errors
             </p>
-          </CardContent>
-        </Card>
+                </CardContent>
+              </Card>
 
-        <Card>
+              <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">System Memory</CardTitle>
             <Memory className="h-4 w-4 text-muted-foreground" />
@@ -221,10 +221,10 @@ export function BotMonitoringSystem() {
             <p className="text-xs text-muted-foreground">
               of {systemResources?.totalMemory || "0"} total
             </p>
-          </CardContent>
-        </Card>
+                </CardContent>
+              </Card>
 
-        <Card>
+              <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">System CPU</CardTitle>
             <Cpu className="h-4 w-4 text-muted-foreground" />
@@ -234,9 +234,9 @@ export function BotMonitoringSystem() {
             <p className="text-xs text-muted-foreground">
               {systemResources?.containerCount || 0} containers
             </p>
-          </CardContent>
-        </Card>
-      </div>
+                </CardContent>
+              </Card>
+            </div>
 
       {/* Real-time Monitoring */}
       <Tabs defaultValue="overview" className="w-full">
@@ -276,11 +276,11 @@ export function BotMonitoringSystem() {
                 </ResponsiveContainer>
                 <div className="mt-4 space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Memory Usage</span>
+                        <span>Memory Usage</span>
                     <span>{systemResources?.usedMemory || "0"}</span>
-                  </div>
+                      </div>
                   <div className="flex justify-between text-sm">
-                    <span>CPU Usage</span>
+                        <span>CPU Usage</span>
                     <span>{systemResources?.usedCpu || "0%"}</span>
                   </div>
                 </div>
@@ -288,25 +288,25 @@ export function BotMonitoringSystem() {
             </Card>
 
             {/* Bot Activity Chart */}
-            <Card>
-              <CardHeader>
+              <Card>
+                <CardHeader>
                 <CardTitle>Bot Activity</CardTitle>
                 <CardDescription>Message processing activity</CardDescription>
-              </CardHeader>
-              <CardContent>
+                </CardHeader>
+                <CardContent>
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={botActivityData}>
-                    <CartesianGrid strokeDasharray="3 3" />
+                      <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
+                      <YAxis />
+                      <Tooltip />
                     <Bar dataKey="messages" fill="#3b82f6" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
 
         <TabsContent value="bots" className="space-y-4">
           <div className="grid grid-cols-1 gap-4">
@@ -323,9 +323,9 @@ export function BotMonitoringSystem() {
                       {getStatusIcon(bot.status)}
                       <span className="text-sm capitalize">{bot.status}</span>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
+                </div>
+              </CardHeader>
+              <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2 text-sm">
@@ -355,10 +355,10 @@ export function BotMonitoringSystem() {
                       <div className="flex items-center space-x-2 text-sm">
                         <Cpu className="w-4 h-4" />
                         <span>CPU</span>
-                      </div>
+                        </div>
                       <div className="text-2xl font-bold">{bot.metrics.cpuUsagePercent.toFixed(1)}%</div>
-                    </div>
-                  </div>
+                        </div>
+                      </div>
                   
                   {bot.metrics.errorCount > 0 && (
                     <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -366,22 +366,22 @@ export function BotMonitoringSystem() {
                         <AlertTriangle className="w-4 h-4" />
                         <span className="text-sm font-medium">{bot.metrics.errorCount} errors detected</span>
                       </div>
-                    </div>
+                </div>
                   )}
-                </CardContent>
-              </Card>
+              </CardContent>
+            </Card>
             ))}
           </div>
-        </TabsContent>
+          </TabsContent>
 
         <TabsContent value="system" className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* System Performance */}
-            <Card>
-              <CardHeader>
+              <Card>
+                <CardHeader>
                 <CardTitle>System Performance</CardTitle>
                 <CardDescription>Real-time system metrics</CardDescription>
-              </CardHeader>
+                </CardHeader>
               <CardContent className="space-y-4">
                 <div>
                   <div className="flex justify-between text-sm mb-2">
@@ -394,37 +394,37 @@ export function BotMonitoringSystem() {
                   />
                 </div>
                 
-                <div>
+                  <div>
                   <div className="flex justify-between text-sm mb-2">
                     <span>CPU Usage</span>
                     <span>{systemResources?.usedCpu || "0%"}</span>
-                  </div>
+                    </div>
                   <Progress 
                     value={parseFloat(systemResources?.usedCpu.replace(/[^\d.]/g, "") || "0")} 
                     className="w-full" 
                   />
-                </div>
+                  </div>
                 
-                <div>
+                  <div>
                   <div className="flex justify-between text-sm mb-2">
                     <span>Active Containers</span>
                     <span>{systemResources?.containerCount || 0}</span>
-                  </div>
+                    </div>
                   <Progress 
                     value={(systemResources?.containerCount || 0) / 3 * 100} 
                     className="w-full" 
                   />
-                </div>
-              </CardContent>
-            </Card>
+                  </div>
+                </CardContent>
+              </Card>
 
             {/* Real-time Activity */}
-            <Card>
-              <CardHeader>
+              <Card>
+                <CardHeader>
                 <CardTitle>Real-time Activity</CardTitle>
                 <CardDescription>Live platform activity</CardDescription>
-              </CardHeader>
-              <CardContent>
+                </CardHeader>
+                <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Active Connections</span>
@@ -441,12 +441,12 @@ export function BotMonitoringSystem() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Average Uptime</span>
                     <span className="font-bold">{formatUptime(platformMetrics?.averageUptime || 0)}</span>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
 
         <TabsContent value="charts" className="space-y-4">
           <div className="grid grid-cols-1 gap-6">
@@ -471,7 +471,7 @@ export function BotMonitoringSystem() {
             </Card>
           </div>
         </TabsContent>
-      </Tabs>
+        </Tabs>
     </div>
   )
 }

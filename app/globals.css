@@ -1,7 +1,6 @@
-@import "tailwindcss";
-/* Removed potentially problematic tw-animate-css import */
-
-@custom-variant dark (&:is(.dark *));
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   /* Dark malicious color scheme */

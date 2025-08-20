@@ -14,14 +14,13 @@ const config: CapacitorConfig = {
       '127.0.0.1:*'
     ]
   },
-  android: {
-    buildOptions: {
-      keystorePath: undefined,
-      keystoreAlias: undefined,
-      keystorePassword: undefined,
-      keyPassword: undefined,
-    }
-  },
+          android: {
+          buildOptions: {
+            keystorePath: undefined,
+            keystoreAlias: undefined,
+            keystorePassword: undefined,
+          }
+        },
   plugins: {
     SplashScreen: {
       launchShowDuration: 3000,

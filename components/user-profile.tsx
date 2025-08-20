@@ -11,11 +11,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { User, Settings, LogOut, Crown, Calendar } from "lucide-react"
+import { User, Settings, Crown, Calendar } from "lucide-react"
 import { useAuth } from "./auth/auth-provider"
 
 export function UserProfile() {
-  const { user, logout, updateProfile } = useAuth()
+  const { user, updateProfile } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [name, setName] = useState(user?.name || "")
   const [email, setEmail] = useState(user?.email || "")
@@ -108,12 +108,7 @@ export function UserProfile() {
           Account Settings
         </DropdownMenuItem>
 
-        <DropdownMenuSeparator />
 
-        <DropdownMenuItem className="cursor-pointer text-red-600" onClick={logout}>
-          <LogOut className="w-4 h-4 mr-2" />
-          Sign Out
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

@@ -24,7 +24,7 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [acceptTerms, setAcceptTerms] = useState(false)
   const [error, setError] = useState("")
-  const { register, isLoading } = useAuth()
+  const { isLoading } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,10 +50,8 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
       return
     }
 
-    const success = await register(email, password, name)
-    if (!success) {
-      setError("Registration failed. Please try again.")
-    }
+    // Authentication is disabled - redirect to main page
+    window.location.href = "/"
   }
 
   return (

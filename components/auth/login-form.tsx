@@ -20,7 +20,7 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
-  const { login, isLoading } = useAuth()
+  const { isLoading } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -31,10 +31,8 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
       return
     }
 
-    const success = await login(email, password)
-    if (!success) {
-      setError("Invalid email or password")
-    }
+    // Authentication is disabled - redirect to main page
+    window.location.href = "/"
   }
 
   return (

@@ -1,0 +1,47 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Telegram Bot Platform
+  - job_name: 'telegram-bot-platform'
+    static_configs:
+      - targets: ['telegram-bot-platform:3000']
+    metrics_path: '/api/metrics'
+    scrape_interval: 10s
+
+  # Docker containers
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['telegram-bot-platform:9323']
+    scrape_interval: 15s
+
+  # Bot containers
+  - job_name: 'bot-containers'
+    static_configs:
+      - targets: ['telegram-bot-platform:3000']
+    metrics_path: '/api/bots/metrics'
+    scrape_interval: 30s
+    params:
+      format: ['prometheus']
+
+  # Redis
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    scrape_interval: 15s
+
+  # PostgreSQL
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+    scrape_interval: 30s

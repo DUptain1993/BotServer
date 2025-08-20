@@ -1,450 +1,477 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Progress } from "@/components/ui/progress"
-import {
-  Activity,
-  Users,
+import { 
+  Activity, 
+  Cpu, 
+  Memory, 
+  HardDrive, 
+  Wifi, 
+  AlertTriangle, 
+  CheckCircle, 
+  Clock,
   MessageSquare,
-  AlertTriangle,
+  Users,
   TrendingUp,
-  Server,
-  Zap,
-  Download,
-  RefreshCw,
+  Server
 } from "lucide-react"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts"
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from "recharts"
 
 interface BotMetrics {
   id: string
   name: string
-  status: "online" | "offline" | "error"
-  uptime: number
+  status: string
+  platform: string
+  containerStatus: {
+    status: string
+    memoryUsage: string
+    cpuUsage: string
+    logs: string[]
+  }
+  metrics: {
+    messagesProcessed: number
+    uptimeSeconds: number
+    memoryUsageMB: number
+    cpuUsagePercent: number
+    errorCount: number
+    lastActivity: Date
+  }
+  createdAt: string
+  updatedAt: string
+}
+
+interface SystemResources {
+  totalMemory: string
+  usedMemory: string
+  totalCpu: string
+  usedCpu: string
+  containerCount: number
+}
+
+interface PlatformMetrics {
+  totalBots: number
+  runningBots: number
+  stoppedBots: number
+  errorBots: number
   totalMessages: number
-  activeUsers: number
-  errorCount: number
-  responseTime: number
-  memoryUsage: number
-  cpuUsage: number
-  lastActivity: Date
+  totalErrors: number
+  averageUptime: number
 }
 
-interface LogEntry {
-  timestamp: Date
-  level: "info" | "warning" | "error"
-  message: string
-  botId: string
+interface RealTimeData {
+  timestamp: string
+  activeConnections: number
+  systemLoad: {
+    memory: string
+    cpu: string
+    containers: number
+  }
 }
-
-interface ChartData {
-  time: string
-  messages: number
-  users: number
-  errors: number
-}
-
-const mockMetrics: BotMetrics[] = [
-  {
-    id: "1",
-    name: "weather-bot",
-    status: "online",
-    uptime: 99.8,
-    totalMessages: 1247,
-    activeUsers: 89,
-    errorCount: 3,
-    responseTime: 120,
-    memoryUsage: 45,
-    cpuUsage: 23,
-    lastActivity: new Date(Date.now() - 2 * 60 * 1000),
-  },
-  {
-    id: "2",
-    name: "support-bot",
-    status: "online",
-    uptime: 97.2,
-    totalMessages: 892,
-    activeUsers: 34,
-    errorCount: 12,
-    responseTime: 89,
-    memoryUsage: 38,
-    cpuUsage: 15,
-    lastActivity: new Date(Date.now() - 5 * 60 * 1000),
-  },
-]
-
-const mockChartData: ChartData[] = [
-  { time: "00:00", messages: 45, users: 12, errors: 0 },
-  { time: "04:00", messages: 23, users: 8, errors: 1 },
-  { time: "08:00", messages: 89, users: 25, errors: 0 },
-  { time: "12:00", messages: 156, users: 42, errors: 2 },
-  { time: "16:00", messages: 134, users: 38, errors: 1 },
-  { time: "20:00", messages: 98, users: 28, errors: 0 },
-]
-
-const mockLogs: LogEntry[] = [
-  { timestamp: new Date(Date.now() - 1 * 60 * 1000), level: "info", message: "Bot started successfully", botId: "1" },
-  { timestamp: new Date(Date.now() - 3 * 60 * 1000), level: "info", message: "Processed 50 messages", botId: "1" },
-  {
-    timestamp: new Date(Date.now() - 5 * 60 * 1000),
-    level: "warning",
-    message: "High memory usage detected",
-    botId: "2",
-  },
-  {
-    timestamp: new Date(Date.now() - 8 * 60 * 1000),
-    level: "error",
-    message: "Failed to connect to external API",
-    botId: "2",
-  },
-  {
-    timestamp: new Date(Date.now() - 12 * 60 * 1000),
-    level: "info",
-    message: "User authentication successful",
-    botId: "1",
-  },
-]
-
-const COLORS = ["#059669", "#10b981", "#34d399", "#6ee7b7"]
 
 export function BotMonitoringSystem() {
-  const [selectedBot, setSelectedBot] = useState<string>("1")
-  const [metrics, setMetrics] = useState<BotMetrics[]>(mockMetrics)
-  const [logs, setLogs] = useState<LogEntry[]>(mockLogs)
-  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [botMetrics, setBotMetrics] = useState<BotMetrics[]>([])
+  const [systemResources, setSystemResources] = useState<SystemResources | null>(null)
+  const [platformMetrics, setPlatformMetrics] = useState<PlatformMetrics | null>(null)
+  const [realTimeData, setRealTimeData] = useState<RealTimeData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const selectedBotMetrics = metrics.find((m) => m.id === selectedBot)
-
-  const refreshData = async () => {
-    setIsRefreshing(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    setIsRefreshing(false)
+  const fetchMetrics = async () => {
+    try {
+      const response = await fetch("/api/bots/metrics")
+      if (!response.ok) {
+        throw new Error("Failed to fetch metrics")
+      }
+      
+      const data = await response.json()
+      setBotMetrics(data.botMetrics || [])
+      setSystemResources(data.systemResources)
+      setPlatformMetrics(data.platformMetrics)
+      setRealTimeData(data.realTimeData)
+      setError(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch metrics")
+    } finally {
+      setIsLoading(false)
+    }
   }
+
+  useEffect(() => {
+    fetchMetrics()
+    const interval = setInterval(fetchMetrics, 5000) // Update every 5 seconds
+    return () => clearInterval(interval)
+  }, [])
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "online":
-        return "bg-emerald-500"
-      case "offline":
+      case "running":
+        return "bg-green-500"
+      case "stopped":
         return "bg-gray-500"
       case "error":
         return "bg-red-500"
+      case "starting":
+        return "bg-yellow-500"
       default:
-        return "bg-gray-400"
+        return "bg-gray-500"
     }
   }
 
-  const getLogLevelColor = (level: string) => {
-    switch (level) {
-      case "info":
-        return "text-blue-600"
-      case "warning":
-        return "text-yellow-600"
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "running":
+        return <CheckCircle className="w-4 h-4" />
       case "error":
-        return "text-red-600"
+        return <AlertTriangle className="w-4 h-4" />
       default:
-        return "text-gray-600"
+        return <Clock className="w-4 h-4" />
     }
   }
 
-  const formatUptime = (uptime: number) => {
-    return `${uptime.toFixed(1)}%`
+  const formatUptime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600)
+    const minutes = Math.floor((seconds % 3600) / 60)
+    return `${hours}h ${minutes}m`
   }
 
-  const formatLastActivity = (date: Date) => {
-    const minutes = Math.floor((Date.now() - date.getTime()) / (1000 * 60))
-    return `${minutes}m ago`
+  const formatMemory = (mb: number) => {
+    if (mb > 1024) {
+      return `${(mb / 1024).toFixed(1)} GB`
+    }
+    return `${mb.toFixed(1)} MB`
+  }
+
+  // Chart data for system resources
+  const systemChartData = [
+    { name: "Memory", value: parseFloat(systemResources?.usedMemory.replace(/[^\d.]/g, "") || "0") },
+    { name: "CPU", value: parseFloat(systemResources?.usedCpu.replace(/[^\d.]/g, "") || "0") }
+  ]
+
+  // Chart data for bot activity
+  const botActivityData = botMetrics.map(bot => ({
+    name: bot.name,
+    messages: bot.metrics.messagesProcessed,
+    errors: bot.metrics.errorCount,
+    memory: bot.metrics.memoryUsageMB
+  }))
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center space-x-2 text-red-600">
+            <AlertTriangle className="w-5 h-5" />
+            <span>Error: {error}</span>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
     <div className="space-y-6">
-      {/* Header with Refresh */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="font-heading text-3xl font-bold text-foreground">Bot Monitoring</h2>
-          <p className="text-muted-foreground">Real-time performance and analytics</p>
-        </div>
-        <Button variant="outline" onClick={refreshData} disabled={isRefreshing} className="gap-2 bg-transparent">
-          <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
+      {/* Platform Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Bots</CardTitle>
+            <Server className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{platformMetrics?.totalBots || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              {platformMetrics?.runningBots || 0} running, {platformMetrics?.stoppedBots || 0} stopped
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Messages</CardTitle>
+            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{platformMetrics?.totalMessages || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              {platformMetrics?.totalErrors || 0} errors
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">System Memory</CardTitle>
+            <Memory className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{systemResources?.usedMemory || "0"}</div>
+            <p className="text-xs text-muted-foreground">
+              of {systemResources?.totalMemory || "0"} total
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">System CPU</CardTitle>
+            <Cpu className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{systemResources?.usedCpu || "0%"}</div>
+            <p className="text-xs text-muted-foreground">
+              {systemResources?.containerCount || 0} containers
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Bot Overview Cards */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {metrics.map((bot) => (
-          <Card
-            key={bot.id}
-            className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${
-              selectedBot === bot.id ? "ring-2 ring-primary" : ""
-            }`}
-            onClick={() => setSelectedBot(bot.id)}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-medium truncate">{bot.name}</h3>
-                <Badge className={`${getStatusColor(bot.status)} text-white`}>{bot.status}</Badge>
-              </div>
-              <div className="space-y-1 text-sm text-muted-foreground">
-                <div className="flex justify-between">
-                  <span>Uptime:</span>
-                  <span className="font-medium">{formatUptime(bot.uptime)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Messages:</span>
-                  <span className="font-medium">{bot.totalMessages.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Users:</span>
-                  <span className="font-medium">{bot.activeUsers}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* Real-time Monitoring */}
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="bots">Bot Details</TabsTrigger>
+          <TabsTrigger value="system">System</TabsTrigger>
+          <TabsTrigger value="charts">Analytics</TabsTrigger>
+        </TabsList>
 
-      {/* Detailed Monitoring */}
-      {selectedBotMetrics && (
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="logs">Logs</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
-            {/* Key Metrics */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
-                      <Activity className="w-6 h-6 text-emerald-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Uptime</p>
-                      <p className="text-2xl font-bold">{formatUptime(selectedBotMetrics.uptime)}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <MessageSquare className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Messages</p>
-                      <p className="text-2xl font-bold">{selectedBotMetrics.totalMessages.toLocaleString()}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                      <Users className="w-6 h-6 text-purple-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Active Users</p>
-                      <p className="text-2xl font-bold">{selectedBotMetrics.activeUsers}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                      <AlertTriangle className="w-6 h-6 text-red-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Errors</p>
-                      <p className="text-2xl font-bold">{selectedBotMetrics.errorCount}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Status Details */}
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* System Resources Chart */}
             <Card>
               <CardHeader>
-                <CardTitle className="font-heading">Bot Status Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span>Response Time</span>
-                      <span className="font-medium">{selectedBotMetrics.responseTime}ms</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Last Activity</span>
-                      <span className="font-medium">{formatLastActivity(selectedBotMetrics.lastActivity)}</span>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span>Memory Usage</span>
-                        <span className="font-medium">{selectedBotMetrics.memoryUsage}%</span>
-                      </div>
-                      <Progress value={selectedBotMetrics.memoryUsage} className="h-2" />
-                    </div>
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span>CPU Usage</span>
-                        <span className="font-medium">{selectedBotMetrics.cpuUsage}%</span>
-                      </div>
-                      <Progress value={selectedBotMetrics.cpuUsage} className="h-2" />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="analytics" className="space-y-6">
-            <div className="grid lg:grid-cols-2 gap-6">
-              {/* Message Activity Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="font-heading">Message Activity</CardTitle>
-                  <CardDescription>Messages processed over time</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={mockChartData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="time" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="messages" stroke="#059669" strokeWidth={2} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              {/* User Activity Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="font-heading">User Activity</CardTitle>
-                  <CardDescription>Active users throughout the day</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={mockChartData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="time" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="users" fill="#10b981" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="logs" className="space-y-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle className="font-heading">Recent Logs</CardTitle>
-                  <CardDescription>Real-time bot activity and error logs</CardDescription>
-                </div>
-                <Button variant="outline" size="sm">
-                  <Download className="w-4 h-4 mr-2" />
-                  Export
-                </Button>
+                <CardTitle>System Resources</CardTitle>
+                <CardDescription>Current system resource usage</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {logs
-                    .filter((log) => log.botId === selectedBot)
-                    .map((log, index) => (
-                      <div key={index} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
-                        <div className="flex-shrink-0">
-                          <Badge variant="outline" className={getLogLevelColor(log.level)}>
-                            {log.level}
-                          </Badge>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm">{log.message}</p>
-                          <p className="text-xs text-muted-foreground mt-1">{log.timestamp.toLocaleTimeString()}</p>
-                        </div>
-                      </div>
-                    ))}
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={systemChartData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={40}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {systemChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={index === 0 ? "#3b82f6" : "#ef4444"} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="mt-4 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Memory Usage</span>
+                    <span>{systemResources?.usedMemory || "0"}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>CPU Usage</span>
+                    <span>{systemResources?.usedCpu || "0%"}</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
 
-          <TabsContent value="performance" className="space-y-6">
-            <div className="grid lg:grid-cols-2 gap-6">
-              {/* Resource Usage */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="font-heading">Resource Usage</CardTitle>
-                  <CardDescription>Current system resource consumption</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <span className="flex items-center gap-2">
-                        <Server className="w-4 h-4" />
-                        Memory Usage
-                      </span>
-                      <span className="font-medium">{selectedBotMetrics.memoryUsage}%</span>
-                    </div>
-                    <Progress value={selectedBotMetrics.memoryUsage} className="h-3" />
-                  </div>
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <span className="flex items-center gap-2">
-                        <Zap className="w-4 h-4" />
-                        CPU Usage
-                      </span>
-                      <span className="font-medium">{selectedBotMetrics.cpuUsage}%</span>
-                    </div>
-                    <Progress value={selectedBotMetrics.cpuUsage} className="h-3" />
-                  </div>
-                </CardContent>
-              </Card>
+            {/* Bot Activity Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Bot Activity</CardTitle>
+                <CardDescription>Message processing activity</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={botActivityData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="messages" fill="#3b82f6" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
 
-              {/* Response Time Trends */}
-              <Card>
+        <TabsContent value="bots" className="space-y-4">
+          <div className="grid grid-cols-1 gap-4">
+            {botMetrics.map((bot) => (
+              <Card key={bot.id}>
                 <CardHeader>
-                  <CardTitle className="font-heading">Response Time</CardTitle>
-                  <CardDescription>Average response time trends</CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-3 h-3 rounded-full ${getStatusColor(bot.status)}`}></div>
+                      <CardTitle className="text-lg">{bot.name}</CardTitle>
+                      <Badge variant="outline">{bot.platform}</Badge>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {getStatusIcon(bot.status)}
+                      <span className="text-sm capitalize">{bot.status}</span>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-8">
-                    <div className="text-4xl font-bold text-primary mb-2">{selectedBotMetrics.responseTime}ms</div>
-                    <p className="text-muted-foreground">Average Response Time</p>
-                    <div className="flex items-center justify-center gap-2 mt-4 text-emerald-600">
-                      <TrendingUp className="w-4 h-4" />
-                      <span className="text-sm">12% faster than yesterday</span>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2 text-sm">
+                        <MessageSquare className="w-4 h-4" />
+                        <span>Messages</span>
+                      </div>
+                      <div className="text-2xl font-bold">{bot.metrics.messagesProcessed}</div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2 text-sm">
+                        <Clock className="w-4 h-4" />
+                        <span>Uptime</span>
+                      </div>
+                      <div className="text-2xl font-bold">{formatUptime(bot.metrics.uptimeSeconds)}</div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2 text-sm">
+                        <Memory className="w-4 h-4" />
+                        <span>Memory</span>
+                      </div>
+                      <div className="text-2xl font-bold">{formatMemory(bot.metrics.memoryUsageMB)}</div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2 text-sm">
+                        <Cpu className="w-4 h-4" />
+                        <span>CPU</span>
+                      </div>
+                      <div className="text-2xl font-bold">{bot.metrics.cpuUsagePercent.toFixed(1)}%</div>
                     </div>
                   </div>
+                  
+                  {bot.metrics.errorCount > 0 && (
+                    <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <div className="flex items-center space-x-2 text-red-700">
+                        <AlertTriangle className="w-4 h-4" />
+                        <span className="text-sm font-medium">{bot.metrics.errorCount} errors detected</span>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
-      )}
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="system" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* System Performance */}
+            <Card>
+              <CardHeader>
+                <CardTitle>System Performance</CardTitle>
+                <CardDescription>Real-time system metrics</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span>Memory Usage</span>
+                    <span>{systemResources?.usedMemory || "0"} / {systemResources?.totalMemory || "0"}</span>
+                  </div>
+                  <Progress 
+                    value={parseFloat(systemResources?.usedMemory.replace(/[^\d.]/g, "") || "0")} 
+                    className="w-full" 
+                  />
+                </div>
+                
+                <div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span>CPU Usage</span>
+                    <span>{systemResources?.usedCpu || "0%"}</span>
+                  </div>
+                  <Progress 
+                    value={parseFloat(systemResources?.usedCpu.replace(/[^\d.]/g, "") || "0")} 
+                    className="w-full" 
+                  />
+                </div>
+                
+                <div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span>Active Containers</span>
+                    <span>{systemResources?.containerCount || 0}</span>
+                  </div>
+                  <Progress 
+                    value={(systemResources?.containerCount || 0) / 3 * 100} 
+                    className="w-full" 
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Real-time Activity */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Real-time Activity</CardTitle>
+                <CardDescription>Live platform activity</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Active Connections</span>
+                    <span className="font-bold">{realTimeData?.activeConnections || 0}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Last Update</span>
+                    <span className="text-sm text-muted-foreground">
+                      {realTimeData?.timestamp ? new Date(realTimeData.timestamp).toLocaleTimeString() : "N/A"}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Average Uptime</span>
+                    <span className="font-bold">{formatUptime(platformMetrics?.averageUptime || 0)}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="charts" className="space-y-4">
+          <div className="grid grid-cols-1 gap-6">
+            {/* Bot Performance Trends */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Bot Performance Trends</CardTitle>
+                <CardDescription>Message processing over time</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={botActivityData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="messages" stroke="#3b82f6" strokeWidth={2} />
+                    <Line type="monotone" dataKey="errors" stroke="#ef4444" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

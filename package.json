@@ -1,12 +1,71 @@
 {
-  "name": "your-package-name",
-  "version": "your-package-version",
+  "name": "telegram-bot-deployment-platform",
+  "version": "1.0.0",
+  "description": "A comprehensive Telegram bot deployment platform with Android support and real-time monitoring",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "android:build": "next build && npx @next/swc-android-arm64",
+    "android:start": "next start --port 3000 --hostname 0.0.0.0",
+    "docker:build": "docker build -t telegram-bot-platform .",
+    "docker:run": "docker run -p 3000:3000 telegram-bot-platform"
+  },
   "dependencies": {
-    // other dependencies
-    // '@next/swc-android-arm64' removed
+    "@next/swc-android-arm64": "^14.0.0",
+    "@radix-ui/react-accordion": "^1.1.2",
+    "@radix-ui/react-alert-dialog": "^1.0.5",
+    "@radix-ui/react-avatar": "^1.0.4",
+    "@radix-ui/react-checkbox": "^1.0.4",
+    "@radix-ui/react-dialog": "^1.0.5",
+    "@radix-ui/react-dropdown-menu": "^2.0.6",
+    "@radix-ui/react-label": "^2.0.2",
+    "@radix-ui/react-progress": "^1.0.3",
+    "@radix-ui/react-select": "^2.0.0",
+    "@radix-ui/react-separator": "^1.0.3",
+    "@radix-ui/react-slot": "^1.0.2",
+    "@radix-ui/react-switch": "^1.0.3",
+    "@radix-ui/react-tabs": "^1.0.4",
+    "@radix-ui/react-toast": "^1.1.5",
+    "@radix-ui/react-tooltip": "^1.0.7",
+    "@supabase/ssr": "^0.1.0",
+    "@supabase/supabase-js": "^2.38.4",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.0.0",
+    "cmdk": "^0.2.0",
+    "framer-motion": "^10.16.16",
+    "lucide-react": "^0.294.0",
+    "next": "14.0.3",
+    "react": "^18",
+    "react-dom": "^18",
+    "recharts": "^2.8.0",
+    "socket.io": "^4.7.4",
+    "socket.io-client": "^4.7.4",
+    "tailwind-merge": "^2.0.0",
+    "tailwindcss-animate": "^1.0.7",
+    "uuid": "^9.0.1",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/uuid": "^9.0.7",
+    "autoprefixer": "^10.0.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.0.3",
+    "postcss": "^8",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "overrides": {
-    // other overrides
-    // '@next/swc-android-arm64' removed
+    "@next/swc-android-arm64": {
+      "fsevents": "~2.3.3"
+    }
   }
 }
